@@ -27,12 +27,13 @@ const PORT = process.env.PORT || 8445;
 const WIT_TOKEN = 'TIT545YKEJHN7QB7HJHSTWP34EZSS7YS';
 
 // Messenger API parameters
-const FB_PAGE_TOKEN = 'EAAFHizhSqiYBALxlZADQRG2Ie0cApCKpLCOMSofYlKkS908vZCTXZC1helVJVlnSwEaqhS6Tj9vj3VQwFP20DHYE1MUXws284OcqR8CCEhZCoCVrZAnZAS9XTk4nEjIHZBXmYbSBI2ird3QafuVduneEUp4b3g2NFzG46rZCc8IcdQZDZD';
+const FB_PAGE_TOKEN = 'EAAFHizhSqiYBAJ5lUkg2RzJznXio8oXSSZCZAP05vhEMwYPrPKbX597ajDZCmTPznaYwcN69MTxkXi5GcSpFXYTjHFrQar4iG2mreE7zWxkUJSdQq0f1RjeVZCZCWptHwySOkbQZByuNnVY6hn9tgZBoZCfE6tj249AMHa6xyhPbuwZDZD';
 if (!FB_PAGE_TOKEN) { throw new Error('missing FB_PAGE_TOKEN') }
 const FB_APP_SECRET = '897f48a01ec53d19d02dfdb55cff0c4f';
 if (!FB_APP_SECRET) { throw new Error('missing FB_APP_SECRET') }
 
 let FB_VERIFY_TOKEN = 'arjunisawesome';
+
 
 const fbMessage = (id, text) => {
   const body = JSON.stringify({
@@ -43,7 +44,7 @@ const fbMessage = (id, text) => {
   return fetch('https://graph.facebook.com/me/messages?' + qs, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body,
+    body
   })
   .then(rsp => rsp.json())
   .then(json => {
@@ -53,6 +54,37 @@ const fbMessage = (id, text) => {
     return json;
   });
 };
+
+function generateWelcomeMessage() {
+     return {
+     "setting_type": "call_to_actions",
+     "thread_state": "new_thread",
+     "call_to_actions": [{
+                    "message": {
+                                "text": "Hi {{user_full_name}}, Welcome to my RealBot!"
+                                }
+                      }]
+     };
+}
+
+var welcomeMessage = generateWelcomeMessage();
+
+const fbWelcomeMessage = (id) => {
+  const qs = 'access_token=' + encodeURIComponent(FB_PAGE_TOKEN);
+  fetch('https://graph.facebook.com/me/messages?' + qs, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(welcomeMessage)
+    })
+    .then(rsp => rsp.json())
+    .then(json => {
+      if (json.error && json.error.message) {
+        throw new Error(json.error.message);
+      }
+      return json;
+    });
+};
+
 
 const sessions = {};
 
@@ -66,10 +98,21 @@ const findOrCreateSession = (fbid) => {
     }
   });
   if (!sessionId) {
-    // No session found for user fbid, let's create a new one
     sessionId = new Date().toISOString();
     sessions[sessionId] = {fbid: fbid, context: {}};
   }
+  return sessionId;
+};
+
+const findSession = (fbid) => {
+  let sessionId;
+  // Let's see if we already have a session for the user fbid
+  Object.keys(sessions).forEach(k => {
+    if (sessions[k].fbid === fbid) {
+      // Yep, got it!
+      sessionId = k;
+    }
+  });
   return sessionId;
 };
 
@@ -167,8 +210,13 @@ app.use(({method, url}, rsp, next) => {
   });
   next();
 });
+
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 
+
+app.get('/', function(req, res){
+  res.send("I_am_alive");
+})
 // Webhook setup
 app.get('/webhook', (req, res) => {
   if (req.query['hub.mode'] === 'subscribe' &&
@@ -181,9 +229,6 @@ app.get('/webhook', (req, res) => {
 
 // Message handler
 app.post('/webhook', (req, res) => {
-  // Parse the Messenger payload
-  // See the Webhook reference
-  // https://developers.facebook.com/docs/messenger-platform/webhook-reference
   const data = req.body;
 
   if (data.object === 'page') {
@@ -193,7 +238,10 @@ app.post('/webhook', (req, res) => {
           // Yay! We got a new message!
           // We retrieve the Facebook user ID of the sender
           const sender = event.sender.id;
-
+            if(!findSession(sender)){
+                  fbMessage(sender, "Welcome to RealBot!")
+                  .catch(console.error);    
+            }
           // We retrieve the user's current session, or create one if it doesn't exist
           // This is needed for our bot to figure out the conversation history
           const sessionId = findOrCreateSession(sender);
@@ -243,14 +291,7 @@ app.post('/webhook', (req, res) => {
   res.sendStatus(200);
 });
 
-/*
- * Verify that the callback came from Facebook. Using the App Secret from
- * the App Dashboard, we can verify the signature that is sent with each
- * callback in the x-hub-signature field, located in the header.
- *
- * https://developers.facebook.com/docs/graph-api/webhooks#setup
- *
- */
+
 function verifyRequestSignature(req, res, buf) {
   var signature = req.headers["x-hub-signature"];
 
