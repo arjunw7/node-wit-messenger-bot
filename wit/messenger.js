@@ -159,8 +159,9 @@ const actions = {
     return new Promise(function(resolve, reject){
       var exceptDate = firstEntityValue(entities, 'exceptDate');
       var datetime = firstEntityValue(entities, 'datetime');
+      var intent = firstEntityValue(entities, 'intent');
       console.log(entities);
-      if(datetime){
+      if(datetime && intent){
         var totalSales;
             if(exceptDate){
                 db.sales.find({ dateSold: { $ne: entities.datetime[0].value} }).count(function (err, res) {
