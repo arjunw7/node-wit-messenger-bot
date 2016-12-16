@@ -161,13 +161,14 @@ const actions = {
       var datetime = firstEntityValue(entities, 'datetime');
       var intent = firstEntityValue(entities, 'intent');
       console.log(entities);
-      if(datetime && intent){
+      if((datetime && intent) || (datetime && context.currentIntent=='sales')){
         var totalSales;
             if(exceptDate){
                 db.sales.find({ dateSold: { $ne: entities.datetime[0].value} }).count(function (err, res) {
                     context.unitsSold = res;
                     context.maxDate = '06-12-2016';
                     delete context.missingDate;
+                    delete context.currentIntent;
                     return resolve(context);
                   });
             }
@@ -176,6 +177,7 @@ const actions = {
                     context.unitsSold = res;
                     context.maxDate = '06-12-2016';
                     delete context.missingDate;
+                    delete context.currentIntent;
                     return resolve(context);
                   });
             }
@@ -183,6 +185,7 @@ const actions = {
         else
         { 
           context.missingDate = true;
+          context.currentIntent = 'sales';
           delete context.unitsSold;
           delete context.maxdate;
           return resolve(context);  
