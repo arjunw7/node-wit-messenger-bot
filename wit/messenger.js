@@ -239,7 +239,7 @@ app.post('/webhook', (req, res) => {
           // We retrieve the Facebook user ID of the sender
           const sender = event.sender.id;
             if(!findSession(sender)){
-                  fbMessage(sender, "Welcome to RealBot!")
+                  fbMessage(sender, "Hi {{user_first_name}}, Welcome to RealBot!")
                   .catch(console.error);    
             }
           // We retrieve the user's current session, or create one if it doesn't exist
