@@ -169,6 +169,7 @@ const actions = {
                     context.maxDate = '06-12-2016';
                     delete context.missingDate;
                     delete context.currentIntent;
+                    delete context.unknown;
                     return resolve(context);
                   });
             }
@@ -178,17 +179,28 @@ const actions = {
                     context.maxDate = '06-12-2016';
                     delete context.missingDate;
                     delete context.currentIntent;
+                    delete context.unknown;
                     return resolve(context);
                   });
             }
         }
         else
+        if(entities.intent[0].value=='sales')
         { 
           context.missingDate = true;
           context.currentIntent = 'sales';
           delete context.unitsSold;
           delete context.maxdate;
+          delete context.unknown;
           return resolve(context);  
+        }
+        else{
+          delete context.missingDate;
+          delete context.currentIntent;
+          delete context.unitsSold;
+          delete context.maxdate;
+          context.unknown = true;
+          return resolve(context);
         }
     });  
   },
