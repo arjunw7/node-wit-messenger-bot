@@ -32,7 +32,7 @@ if (!FB_PAGE_TOKEN) { throw new Error('missing FB_PAGE_TOKEN') }
 const FB_APP_SECRET = '897f48a01ec53d19d02dfdb55cff0c4f';
 if (!FB_APP_SECRET) { throw new Error('missing FB_APP_SECRET') }
 
-let FB_VERIFY_TOKEN = arjunisawesome;
+let FB_VERIFY_TOKEN = 'arjunisawesome';
 
 const fbMessage = (id, text) => {
   const body = JSON.stringify({
