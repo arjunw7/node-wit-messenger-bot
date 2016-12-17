@@ -186,10 +186,7 @@ const actions = {
         }
         else
         if(intent && entities.intent[0].value=='sales')
-        { 
-        if(entities.intent[0].value=='sales'){
-          console.log('prrrrrrrrrrrrrrrrr');
-        }
+        {
           context.missingDate = true;
           context.currentIntent = 'sales';
           delete context.unitsSold;
