@@ -21,6 +21,7 @@
   "dependencies": {
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
+    "fs": "0.0.1-security",
     "isomorphic-fetch": "^2.2.1",
     "mongojs": "^2.4.0",
     "node-fetch": "^1.6.3",

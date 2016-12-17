@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const express = require('express');
 const fetch = require('node-fetch');
 const request = require('request');
+const fs =require('fs');
 
 var mongojs = require("mongojs");
 var db = mongojs('mongodb://arjunw7:13bcb0062@ds129038.mlab.com:29038/salesbot', ['sales']);
@@ -229,10 +230,13 @@ app.use(({method, url}, rsp, next) => {
 
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 
+app.set('views', __dirname + '/views');
 
-app.get('/', function(req, res){
-  res.send("I_am_alive");
-})
+// Render homepage (note trailing slash): example.com/
+app.get('/', function(request, response) {
+  var data = fs.readFileSync('index.html').toString();
+  response.send(data);
+});
 // Webhook setup
 app.get('/webhook', (req, res) => {
   if (req.query['hub.mode'] === 'subscribe' &&
