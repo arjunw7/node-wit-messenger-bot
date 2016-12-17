@@ -185,7 +185,7 @@ const actions = {
             }
         }
         else
-        if(intent && entities.intent[0].value==='sales')
+        if(entities.intent[0].value==='sales')
         { 
           context.missingDate = true;
           context.currentIntent = 'sales';
