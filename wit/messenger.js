@@ -212,7 +212,7 @@ const actions = {
            context.fact = fact;
            return resolve(context);
         });
-      }
+      });
   },
   emptyContext({context}){
         delete context.unitsSold;
