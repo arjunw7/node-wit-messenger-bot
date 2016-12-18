@@ -9,6 +9,7 @@ const fs =require('fs');
 
 var mongojs = require("mongojs");
 var db = mongojs('mongodb://arjunw7:13bcb0062@ds129038.mlab.com:29038/salesbot', ['sales']);
+var WikiFakt = require('wikifakt');
 
 let Wit = null;
 let log = null;
@@ -204,6 +205,14 @@ const actions = {
           return resolve(context);
         }
     });  
+  },
+  getFact({sessionId, text, context, entities}){
+      return new Promise(function(resolve, reject){
+        WikiFakt.getRandomFact().then(function(fact) {
+           context.fact = fact;
+           return resolve(context);
+        });
+      }
   },
   emptyContext({context}){
         delete context.unitsSold;
