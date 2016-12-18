@@ -231,7 +231,7 @@ app.use(({method, url}, rsp, next) => {
 app.use(bodyParser.json({ verify: verifyRequestSignature }));
 
 app.set('views', __dirname + '/views');
-
+app.use(express.static('public'));
 // Render homepage (note trailing slash): example.com/
 app.get('/', function(request, response) {
   var data = fs.readFileSync('index.html').toString();
