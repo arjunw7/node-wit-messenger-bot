@@ -186,14 +186,6 @@ const actions = {
         }
     });  
   },
-  getFact({sessionId, text, context, entities}){
-      return new Promise(function(resolve, reject){
-        WikiFakt.getRandomFact().then(function(fact) {
-           context.fact = fact;
-           return resolve(context);
-        });
-      });
-  },
   emptyContext({context}){
         delete context.unitsSold;
         delete context.maxdate;
