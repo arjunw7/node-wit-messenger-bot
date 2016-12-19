@@ -56,14 +56,7 @@ const fbMessage = (id, text) => {
     return json;
   });
 };
-var fullDate = "2016-12-09T00:00:00.000-08:00";
-var year = fullDate.substr(0,4), months = fullDate.substr(5, 2), day = fullDate.substr(8,2);
-console.log(year+months+day);
 
-console.log(year);
-db.settlement.aggregate([{ $match: {nDay : 20161212 }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-                    console.log(res);
-                });
 
 const sessions = {};
 
