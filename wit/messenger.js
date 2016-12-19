@@ -58,6 +58,7 @@ const fbMessage = (id, text) => {
 };
 
 
+
 const sessions = {};
 
 const findOrCreateSession = (fbid) => {
@@ -133,7 +134,7 @@ const actions = {
         var totalSales;
         var fullDate = entities.datetime[0].value;
         var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
-        var completeDate = year+month+day;
+        var completeDate = parseInt(year+month+day);
             if(exceptDate){
                 db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
                     context.unitsSold = res[0].total;
