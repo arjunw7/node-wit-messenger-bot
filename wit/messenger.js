@@ -8,7 +8,7 @@ const request = require('request');
 const fs =require('fs');
 
 var mongojs = require("mongojs");
-var db = mongojs('mongodb://arjunw7:13bcb0062@ds129038.mlab.com:29038/salesbot', ['sales']);
+var db = mongojs('mongodb://arjunw7:13bcb0062@ds129038.mlab.com:29038/salesbot', ['sales', 'settlement']);
 var WikiFakt = require('wikifakt');
 
 let Wit = null;
@@ -57,35 +57,6 @@ const fbMessage = (id, text) => {
   });
 };
 
-function generateWelcomeMessage() {
-     return {
-     "setting_type": "call_to_actions",
-     "thread_state": "new_thread",
-     "call_to_actions": [{
-                    "message": {
-                                "text": "Hi {{user_full_name}}, Welcome to my RealBot!"
-                                }
-                      }]
-     };
-}
-
-var welcomeMessage = generateWelcomeMessage();
-
-const fbWelcomeMessage = (id) => {
-  const qs = 'access_token=' + encodeURIComponent(FB_PAGE_TOKEN);
-  fetch('https://graph.facebook.com/me/messages?' + qs, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(welcomeMessage)
-    })
-    .then(rsp => rsp.json())
-    .then(json => {
-      if (json.error && json.error.message) {
-        throw new Error(json.error.message);
-      }
-      return json;
-    });
-};
 
 
 const sessions = {};
@@ -111,7 +82,6 @@ const findSession = (fbid) => {
   // Let's see if we already have a session for the user fbid
   Object.keys(sessions).forEach(k => {
     if (sessions[k].fbid === fbid) {
-      // Yep, got it!
       sessionId = k;
     }
   });
@@ -138,9 +108,7 @@ const actions = {
     const recipientId = sessions[sessionId].fbid;
     if (recipientId) {
       console.log(sessionId);
-      // Yay, we found our recipient!
-      // Let's forward our bot response to her.
-      // We return a promise to let our bot know when we're done sending
+     
       return fbMessage(recipientId, text)
       .then(() => null)
       .catch((err) => {
@@ -153,7 +121,6 @@ const actions = {
       });
     } else {
       console.error('Oops! Couldn\'t find user for session:', sessionId);
-      // Giving the wheel back to our bot
       return Promise.resolve()
     }
   },
@@ -166,18 +133,18 @@ const actions = {
       if((datetime && intent) || (datetime && context.currentIntent=='sales')){
         var totalSales;
             if(exceptDate){
-                db.sales.find({ dateSold: { $ne: entities.datetime[0].value} }).count(function (err, res) {
-                    context.unitsSold = res;
+                db.settlement.aggregate([{ $match: {nDay : 20161214 }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+                    context.unitsSold = res[0].total;
                     context.maxDate = '06-12-2016';
                     delete context.missingDate;
                     delete context.currentIntent;
                     delete context.unknown;
                     return resolve(context);
-                  });
+                });
             }
             else{
-                db.sales.find({ dateSold:entities.datetime[0].value }).count(function (err, res) {
-                    context.unitsSold = res;
+                db.settlement.aggregate([{ $match: {nDay : 20161214 }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+                    context.unitsSold = res[0].total;
                     context.maxDate = '06-12-2016';
                     delete context.missingDate;
                     delete context.currentIntent;
@@ -185,7 +152,7 @@ const actions = {
                     return resolve(context);
                   });
             }
-        }
+     4   }
         else
         if(intent && entities.intent[0].value=='sales')
         {
