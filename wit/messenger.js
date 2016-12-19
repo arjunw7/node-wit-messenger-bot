@@ -56,8 +56,14 @@ const fbMessage = (id, text) => {
     return json;
   });
 };
+var fullDate = "2016-12-09T00:00:00.000-08:00";
+var year = fullDate.substr(0,4), months = fullDate.substr(5, 2), day = fullDate.substr(8,2);
+console.log(year+months+day);
 
-
+console.log(year);
+db.settlement.aggregate([{ $match: {nDay : 20161212 }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+                    console.log(res);
+                });
 
 const sessions = {};
 
@@ -132,8 +138,11 @@ const actions = {
       console.log(entities);
       if((datetime && intent) || (datetime && context.currentIntent=='sales')){
         var totalSales;
+        var fullDate = entities.datetime[0].value;
+        var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
+        var completeDate = year+month+day;
             if(exceptDate){
-                db.settlement.aggregate([{ $match: {nDay : 20161214 }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+                db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
                     context.unitsSold = res[0].total;
                     context.maxDate = '06-12-2016';
                     delete context.missingDate;
@@ -143,7 +152,7 @@ const actions = {
                 });
             }
             else{
-                db.settlement.aggregate([{ $match: {nDay : 20161214 }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+                db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
                     context.unitsSold = res[0].total;
                     context.maxDate = '06-12-2016';
                     delete context.missingDate;
