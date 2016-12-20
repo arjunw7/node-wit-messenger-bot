@@ -143,12 +143,22 @@ const actions = {
           db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
               context.unitsSold = res[0].total;
               context.maxDate = '06-12-2016';
+              delete context.missingDate;
+              delete context.currentIntent;
+              delete context.item;
+              delete context.unknown;
+              delete context.score;
               return resolve(context);
             });
           }
           else{
               context.missingDate = true;
               context.currentIntent = 'sales';
+              delete context.missingDate;
+              delete context.currentIntent;
+              delete context.item;
+              delete context.unknown;
+              delete context.score;
               return resolve(context);
           }  
         }
@@ -164,6 +174,8 @@ const actions = {
               delete context.missingDate;
               delete context.currentIntent;
               delete context.item;
+              delete context.unknown;
+              delete context.score;
               return resolve(context);
             });
       }
@@ -173,6 +185,8 @@ const actions = {
                 delete context.unitsSold;
                 delete context.maxDate;
                 delete context.missingDate;
+                delete context.unknown;
+                delete context.score;
                 context.currentIntent = 'fact';
                 return resolve(context);
                 });
@@ -184,12 +198,19 @@ const actions = {
                 delete context.unitsSold;
                 delete context.maxDate;
                 delete context.missingDate;
+                delete context.unknown;
                 context.currentIntent = 'score';  
                 return resolve(context);
       }
 
       else{
           context.unknown = true;
+          delete context.item;
+          delete context.unitsSold;
+          delete context.maxDate;
+          delete context.missingDate;
+          delete context.score;
+          delete context.currentIntent;
           return resolve(context);
       }
     })
