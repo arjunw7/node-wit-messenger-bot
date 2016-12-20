@@ -134,7 +134,6 @@ const actions = {
       var intent = firstEntityValue(entities, 'intent');
       if(intent){
         if(entities.intent[0].value=='sales'){
-          var datetime = firstEntityValue(entities, 'datetime');
           if(datetime){
           var totalSales;
           var fullDate = entities.datetime[0].value;
