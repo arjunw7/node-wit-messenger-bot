@@ -180,8 +180,7 @@ const actions = {
             });
       }
       
-      else if(entities.intent[0].value=='score'){
-            if(score){
+      else if(entities.intent[0].value=='score' && score){
                 context.score = "this is score";
                 delete context.item;
                 delete context.unitsSold;
@@ -189,9 +188,8 @@ const actions = {
                 delete context.missingDate;
                 context.currentIntent = 'score';  
                 return resolve(context);
-            }
       }
-      
+
       else{
           context.unknown = true;
           return resolve(context);
@@ -199,9 +197,13 @@ const actions = {
     })
   },
   emptyContext({context}){
-        delete context.unitsSold;
-        delete context.maxdate;
-        delete context.missingDate;
+              delete context.score;
+              delete context.item;
+              delete context.unitsSold;
+              delete context.maxDate;
+              delete context.missingDate;
+              delete context.currentIntent;  
+                
   }
 };
 
