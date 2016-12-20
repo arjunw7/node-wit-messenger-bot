@@ -160,7 +160,7 @@ const actions = {
           context.currentIntent = 'sales';
           return resolve(context);  
         }
-        if(intent && entities.intent[0].values=='fact'){
+        if(intent && entities.intent[0].values=='facts'){
             WikiFakt.getRandomFact().then(function(item) {
               context.item = item;
               return resolve(context);
