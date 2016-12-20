@@ -192,19 +192,7 @@ const actions = {
                 });
           }
       
-      else if(score){
-                context.score = "this is score";
-                delete context.item;
-                delete context.unitsSold;
-                delete context.maxDate;
-                delete context.missingDate;
-                delete context.unknown;
-                context.currentIntent = 'score';  
-                return resolve(context);
-      }
-
       else{
-          context.unknown = true;
           delete context.item;
           delete context.unitsSold;
           delete context.maxDate;
