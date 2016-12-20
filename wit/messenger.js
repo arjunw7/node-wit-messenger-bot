@@ -180,7 +180,7 @@ const actions = {
             });
       }
       
-      else if(entities.intent[0].value=='score' && score){
+      else if(score){
                 context.score = "this is score";
                 delete context.item;
                 delete context.unitsSold;
