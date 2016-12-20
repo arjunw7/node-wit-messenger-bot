@@ -154,8 +154,8 @@ const actions = {
           else{
               context.missingDate = true;
               context.currentIntent = 'sales';
-              delete context.missingDate;
-              delete context.currentIntent;
+              delete context.unitsSold;
+              delete context.maxDate;
               delete context.item;
               delete context.unknown;
               delete context.score;
