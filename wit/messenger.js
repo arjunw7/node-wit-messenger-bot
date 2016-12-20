@@ -132,8 +132,8 @@ const actions = {
       var datetime = firstEntityValue(entities, 'datetime');
       var score = firstEntityValue(entities, 'score');
       var intent = firstEntityValue(entities, 'intent');
-      if(intent){
-        if(entities.intent[0].value=='sales'){
+      
+      if(entities.intent[0].value=='sales'){
           if(datetime){
           var totalSales;
           var fullDate = entities.datetime[0].value;
@@ -152,7 +152,6 @@ const actions = {
               return resolve(context);
           }  
         }
-      }
       else if(datetime && context.currentIntent=='sales'){
         var datetime = firstEntityValue(entities, 'datetime');
         if(datetime){
@@ -171,8 +170,7 @@ const actions = {
             });
         }
       }
-      else if(intent){
-            if(entities.intent[0].value=='fact'){
+      else if(entities.intent[0].value=='fact'){
                 WikiFakt.getRandomFact().then(function(item) {
                 context.item = item;
                 delete context.unitsSold;
@@ -182,7 +180,6 @@ const actions = {
                 return resolve(context);
                 });
           }
-      }
       
       else if(score){
                 context.score = "this is score";
