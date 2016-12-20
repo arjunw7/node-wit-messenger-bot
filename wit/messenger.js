@@ -147,7 +147,7 @@ const actions = {
         console.log(completeDate);
             if(exceptDate){
                 db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-                    if(res){
+                    if(res[0].total){
                         context.unitsSold = res[0].total;
                         context.maxDate = '06-12-2016';
                         delete context.missingDate;
@@ -168,7 +168,7 @@ const actions = {
             }
             else{
                 db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-                    if(res){
+                    if(res[0].total){
                         context.unitsSold = res[0].total;
                         context.maxDate = '06-12-2016';
                         delete context.missingDate;
