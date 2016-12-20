@@ -260,6 +260,10 @@ app.post('/webhook', (req, res) => {
           // Yay! We got a new message!
           // We retrieve the Facebook user ID of the sender
           const sender = event.sender.id;
+          var urlNew ="https://graph.facebook.com/v2.6/" + sender + "?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=" + FB_PAGE_TOKEN;
+          app.get(urlNew, function(err, res){
+            console.log(res);
+          });
             if(!findSession(sender)){
                   fbMessage(sender, "Welcome to RealBot!")
                   .catch(console.error);    
