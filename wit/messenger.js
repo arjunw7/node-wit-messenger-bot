@@ -180,25 +180,18 @@ const actions = {
             });
       }
       
-      else if(entities.intent[0].value=='score' && score){
-            context.score = "this is score";
-            delete context.item;
-            delete context.unitsSold;
-            delete context.maxDate;
-            delete context.missingDate;
-            context.currentIntent = 'score';  
-            return resolve(context);
+      else if(entities.intent[0].value=='score'){
+            if(score){
+                context.score = "this is score";
+                delete context.item;
+                delete context.unitsSold;
+                delete context.maxDate;
+                delete context.missingDate;
+                context.currentIntent = 'score';  
+                return resolve(context);
+            }
       }
-
-      else if(entities.intent[0].value=='score' && !score){
-            context.score = "this is score";
-            delete context.item;
-            delete context.unitsSold;
-            delete context.maxDate;
-            delete context.missingDate;
-            context.currentIntent = 'score';  
-            return resolve(context);
-      }
+      
       else{
           context.unknown = true;
           return resolve(context);
