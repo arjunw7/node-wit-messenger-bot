@@ -216,16 +216,17 @@ const actions = {
       else if(datetime && context.currentIntent=='sales'){
         var datetime = firstEntityValue(entities, 'datetime');
         if(datetime){
-        var totalSales;
-        var fullDate = entities.datetime[0].value;
-        var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
-        var completeDate = parseInt(year+month+day);
-        console.log(completeDate);
-        db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-            context.unitsSold = res[0].total;
-            context.maxDate = '06-12-2016';
-            return resolve(context);
-          });
+          var totalSales;
+          var fullDate = entities.datetime[0].value;
+          var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
+          var completeDate = parseInt(year+month+day);
+          console.log(completeDate);
+          db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+              context.unitsSold = res[0].total;
+              context.maxDate = '06-12-2016';
+              return resolve(context);
+            });
+        }
       }
       else if(entities.intent[0].value=='fact'){
             WikiFakt.getRandomFact().then(function(item) {
@@ -240,8 +241,8 @@ const actions = {
       else{
           context.unknown = true;
           return resolve(context);
-        }
-    });  
+      }
+    })
   },
   emptyContext({context}){
         delete context.unitsSold;
