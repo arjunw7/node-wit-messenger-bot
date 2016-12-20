@@ -126,73 +126,11 @@ const actions = {
       return Promise.resolve()
     }
   },
-  // getSales({sessionId, text, context, entities}) {
-  //   return new Promise(function(resolve, reject){
-  //     var exceptDate = firstEntityValue(entities, 'exceptDate');
-  //     var datetime = firstEntityValue(entities, 'datetime');
-  //     var intent = firstEntityValue(entities, 'intent');
-  //     console.log(entities);
-  //     if((datetime && intent) || (datetime && context.currentIntent=='sales')){
-  //       var totalSales;
-  //       var fullDate = entities.datetime[0].value;
-  //       var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
-  //       var completeDate = parseInt(year+month+day);
-  //       console.log(completeDate);
-  //           if(exceptDate){
-  //               db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-  //                   context.unitsSold = res[0].total;
-  //                   context.maxDate = '06-12-2016';
-  //                   delete context.missingDate;
-  //                   delete context.currentIntent;
-  //                   delete context.unknown;
-  //                   return resolve(context);
-  //               });
-  //           }
-  //           else{
-  //               db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-  //                   context.unitsSold = res[0].total;
-  //                   context.maxDate = '06-12-2016';
-  //                   delete context.missingDate;
-  //                   delete context.currentIntent;
-  //                   delete context.unknown;
-  //                   return resolve(context);
-  //                 });
-  //           }
-  //    4   }
-  //       else
-  //       if(intent && entities.intent[0].value=='sales')
-  //       {
-  //         context.missingDate = true;
-  //         context.currentIntent = 'sales';
-  //         delete context.unitsSold;
-  //         delete context.maxdate;
-  //         delete context.unknown;
-  //         return resolve(context);  
-  //       }
-  //       if(intent && entities.intent[0].values=='facts'){
-  //           WikiFakt.getRandomFact().then(function(item) {
-  //           context.item = item;
-  //           delete context.missingDate;
-  //           delete context.currentIntent;
-  //           delete context.unitsSold;
-  //           delete context.maxdate;
-  //           return resolve(context);
-  //       });  
-  //       }
-  //       else{
-  //         delete context.missingDate;
-  //         delete context.currentIntent;
-  //         delete context.unitsSold;
-  //         delete context.maxdate;
-  //         context.unknown = true;
-  //         return resolve(context);
-  //       }
-  //   });  
-  // },
   merge({sessionId, text, context, entities}) {
     return new Promise(function(resolve, reject){
       console.log(entities);
       var datetime = firstEntityValue(entities, 'datetime');
+      var score = firstEntityValue(entities, 'score');
       if(entities.intent[0].value=='sales'){
         var datetime = firstEntityValue(entities, 'datetime');
         if(datetime){
@@ -237,17 +175,27 @@ const actions = {
             delete context.unitsSold;
             delete context.maxDate;
             delete context.missingDate;
-            delete context.currentIntent;
+            context.currentIntent = 'fact';
             return resolve(context);
             });
       }
-      else if(entities.intent[0].value=='score'){
+      else if(entities.intent[0].value=='score' ){
             context.score = "this is score";
             delete context.item;
             delete context.unitsSold;
             delete context.maxDate;
             delete context.missingDate;
-            delete context.currentIntent;
+            context.currentIntent = 'score';  
+            return resolve(context);
+      }
+      
+      else if(context.currentIntent=='score' && score){
+            context.score = "this is score";
+            delete context.item;
+            delete context.unitsSold;
+            delete context.maxDate;
+            delete context.missingDate;
+            context.currentIntent = 'score';  
             return resolve(context);
       }
       else{
