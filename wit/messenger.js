@@ -224,6 +224,9 @@ const actions = {
           db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
               context.unitsSold = res[0].total;
               context.maxDate = '06-12-2016';
+              delete context.missingDate;
+              delete context.currentIntent;
+              delete context.item;
               return resolve(context);
             });
         }
@@ -231,11 +234,20 @@ const actions = {
       else if(entities.intent[0].value=='fact'){
             WikiFakt.getRandomFact().then(function(item) {
             context.item = item;
+            delete context.unitsSold;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.currentIntent;
             return resolve(context);
             });
       }
       else if(entities.intent[0].value=='score'){
             context.score = "this is score";
+            delete context.item;
+            delete context.unitsSold;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.currentIntent;
             return resolve(context);
       }
       else{
