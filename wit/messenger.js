@@ -126,76 +126,107 @@ const actions = {
       return Promise.resolve()
     }
   },
-  getSales({sessionId, text, context, entities}) {
+  // getSales({sessionId, text, context, entities}) {
+  //   return new Promise(function(resolve, reject){
+  //     var exceptDate = firstEntityValue(entities, 'exceptDate');
+  //     var datetime = firstEntityValue(entities, 'datetime');
+  //     var intent = firstEntityValue(entities, 'intent');
+  //     console.log(entities);
+  //     if((datetime && intent) || (datetime && context.currentIntent=='sales')){
+  //       var totalSales;
+  //       var fullDate = entities.datetime[0].value;
+  //       var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
+  //       var completeDate = parseInt(year+month+day);
+  //       console.log(completeDate);
+  //           if(exceptDate){
+  //               db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+  //                   context.unitsSold = res[0].total;
+  //                   context.maxDate = '06-12-2016';
+  //                   delete context.missingDate;
+  //                   delete context.currentIntent;
+  //                   delete context.unknown;
+  //                   return resolve(context);
+  //               });
+  //           }
+  //           else{
+  //               db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+  //                   context.unitsSold = res[0].total;
+  //                   context.maxDate = '06-12-2016';
+  //                   delete context.missingDate;
+  //                   delete context.currentIntent;
+  //                   delete context.unknown;
+  //                   return resolve(context);
+  //                 });
+  //           }
+  //    4   }
+  //       else
+  //       if(intent && entities.intent[0].value=='sales')
+  //       {
+  //         context.missingDate = true;
+  //         context.currentIntent = 'sales';
+  //         delete context.unitsSold;
+  //         delete context.maxdate;
+  //         delete context.unknown;
+  //         return resolve(context);  
+  //       }
+  //       if(intent && entities.intent[0].values=='facts'){
+  //           WikiFakt.getRandomFact().then(function(item) {
+  //           context.item = item;
+  //           delete context.missingDate;
+  //           delete context.currentIntent;
+  //           delete context.unitsSold;
+  //           delete context.maxdate;
+  //           return resolve(context);
+  //       });  
+  //       }
+  //       else{
+  //         delete context.missingDate;
+  //         delete context.currentIntent;
+  //         delete context.unitsSold;
+  //         delete context.maxdate;
+  //         context.unknown = true;
+  //         return resolve(context);
+  //       }
+  //   });  
+  // },
+  merge({sessionId, text, context, entities}) {
     return new Promise(function(resolve, reject){
-      var exceptDate = firstEntityValue(entities, 'exceptDate');
-      var datetime = firstEntityValue(entities, 'datetime');
-      var intent = firstEntityValue(entities, 'intent');
       console.log(entities);
-      if((datetime && intent) || (datetime && context.currentIntent=='sales')){
+      if(entities.intent[0].value=='sales'){
+        var datetime = firstEntityValue(entities, 'datetime');
+        if(datetime){
         var totalSales;
         var fullDate = entities.datetime[0].value;
         var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
         var completeDate = parseInt(year+month+day);
         console.log(completeDate);
-            if(exceptDate){
-                db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-                    context.unitsSold = res[0].total;
-                    context.maxDate = '06-12-2016';
-                    delete context.missingDate;
-                    delete context.currentIntent;
-                    delete context.unknown;
-                    return resolve(context);
-                });
-            }
-            else{
-                db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-                    context.unitsSold = res[0].total;
-                    context.maxDate = '06-12-2016';
-                    delete context.missingDate;
-                    delete context.currentIntent;
-                    delete context.unknown;
-                    return resolve(context);
-                  });
-            }
-     4   }
-        else
-        if(intent && entities.intent[0].value=='sales')
-        {
-          context.missingDate = true;
-          context.currentIntent = 'sales';
-          delete context.unitsSold;
-          delete context.maxdate;
-          delete context.unknown;
-          return resolve(context);  
-        }
-        if(intent && entities.intent[0].values=='facts'){
-            WikiFakt.getRandomFact().then(function(item) {
-           context.item = item;
-           delete context.missingDate;
-           delete context.currentIntent;
-           delete context.unitsSold;
-           delete context.maxdate;
-           return resolve(context);
-        });  
+        db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
+            context.unitsSold = res[0].total;
+            context.maxDate = '06-12-2016';
+            return resolve(context);
+          });
         }
         else{
-          delete context.missingDate;
-          delete context.currentIntent;
-          delete context.unitsSold;
-          delete context.maxdate;
+            context.missingDate = true;
+            context.currentIntent = 'sales';
+            return resolve(context);
+        }  
+      }
+      else if(entities.intent[0].value=='fact'){
+            WikiFakt.getRandomFact().then(function(item) {
+            context.item = item;
+            return resolve(context);
+            });
+      }
+      else if(entities.intent[0].value=='score'){
+            context.score = "this is score";
+            return resolve(context);
+      }
+      else{
           context.unknown = true;
           return resolve(context);
         }
     });  
-  },
-  getFact({sessionId, text, context, entities}){
-      return new Promise(function(resolve, reject){
-        WikiFakt.getRandomFact().then(function(item) {
-           context.item = item;
-           return resolve(context);
-        });
-      });
   },
   emptyContext({context}){
         delete context.unitsSold;
