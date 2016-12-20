@@ -142,6 +142,9 @@ const actions = {
                 db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
                     context.unitsSold = res[0].total;
                     context.maxDate = '06-12-2016';
+                    delete context.missingDate;
+                    delete context.currentIntent;
+                    delete context.unknown;
                     return resolve(context);
                 });
             }
@@ -149,6 +152,9 @@ const actions = {
                 db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
                     context.unitsSold = res[0].total;
                     context.maxDate = '06-12-2016';
+                    delete context.missingDate;
+                    delete context.currentIntent;
+                    delete context.unknown;
                     return resolve(context);
                   });
             }
@@ -158,15 +164,26 @@ const actions = {
         {
           context.missingDate = true;
           context.currentIntent = 'sales';
+          delete context.unitsSold;
+          delete context.maxdate;
+          delete context.unknown;
           return resolve(context);  
         }
         if(intent && entities.intent[0].values=='facts'){
             WikiFakt.getRandomFact().then(function(item) {
-              context.item = item;
-              return resolve(context);
-            });  
+           context.item = item;
+           delete context.missingDate;
+           delete context.currentIntent;
+           delete context.unitsSold;
+           delete context.maxdate;
+           return resolve(context);
+        });  
         }
         else{
+          delete context.missingDate;
+          delete context.currentIntent;
+          delete context.unitsSold;
+          delete context.maxdate;
           context.unknown = true;
           return resolve(context);
         }
