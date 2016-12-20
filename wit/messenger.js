@@ -152,9 +152,7 @@ const actions = {
               return resolve(context);
           }  
         }
-      else if(datetime && context.currentIntent=='sales'){
-        var datetime = firstEntityValue(entities, 'datetime');
-        if(datetime){
+      else if((datetime && context.currentIntent=='sales') || (entities.intent[0].value=='sales' && datetime)){
           var totalSales;
           var fullDate = entities.datetime[0].value;
           var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
@@ -168,7 +166,6 @@ const actions = {
               delete context.item;
               return resolve(context);
             });
-        }
       }
       else if(entities.intent[0].value=='fact'){
                 WikiFakt.getRandomFact().then(function(item) {
