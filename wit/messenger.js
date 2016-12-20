@@ -1,11 +1,12 @@
 'use strict';
-
-const bodyParser = require('body-parser');
-const crypto = require('crypto');
-const express = require('express');
-const fetch = require('node-fetch');
-const request = require('request');
-const fs =require('fs');
+//developed by Arjun Wadhwa
+//www..github.com/arjunw7/node-wit-messenger-bot
+var bodyParser = require('body-parser');
+var crypto = require('crypto');
+var express = require('express');
+var fetch = require('node-fetch');
+var request = require('request');
+var fs =require('fs');
 
 var mongojs = require("mongojs");
 var db = mongojs('mongodb://arjunw7:13bcb0062@ds129038.mlab.com:29038/salesbot', ['sales', 'settlement']);
