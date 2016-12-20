@@ -147,45 +147,23 @@ const actions = {
         console.log(completeDate);
             if(exceptDate){
                 db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-                    if(res[0].total){
-                        context.unitsSold = res[0].total;
-                        context.maxDate = '06-12-2016';
-                        delete context.missingDate;
-                        delete context.currentIntent;
-                        delete context.unknown;
-                        return resolve(context);
-                    }
-                    else{
-                        context.unitsSold = 0;
-                        context.maxDate = "--";
-                        delete context.missingDate;
-                        delete context.currentIntent;
-                        delete context.unknown;
-                        return resolve(context);                      
-                    }
-                   
+                    context.unitsSold = res[0].total;
+                    context.maxDate = '06-12-2016';
+                    delete context.missingDate;
+                    delete context.currentIntent;
+                    delete context.unknown;
+                    return resolve(context);
                 });
             }
             else{
                 db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-                    if(res[0].total){
-                        context.unitsSold = res[0].total;
-                        context.maxDate = '06-12-2016';
-                        delete context.missingDate;
-                        delete context.currentIntent;
-                        delete context.unknown;
-                        return resolve(context);
-                    }
-                    else{
-                        context.unitsSold = 0;
-                        context.maxDate = "--";
-                        delete context.missingDate;
-                        delete context.currentIntent;
-                        delete context.unknown;
-                        return resolve(context);                      
-                    }
-
-                 });
+                    context.unitsSold = res[0].total;
+                    context.maxDate = '06-12-2016';
+                    delete context.missingDate;
+                    delete context.currentIntent;
+                    delete context.unknown;
+                    return resolve(context);
+                  });
             }
      4   }
         else
