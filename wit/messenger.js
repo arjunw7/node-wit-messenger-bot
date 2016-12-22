@@ -58,9 +58,16 @@ const fbMessage = (id, text) => {
   });
 };
 
-
-
-
+db.settlement.aggregate([{ $group: {_id: "$SalesmanName", value: { $sum: "$CollectedAmount"}}}], function(req, res){
+  console.log(res);
+  var max=0, i=0;
+  for(i=0; i<res.length; i++){
+    if(res[i].value>max){
+      max=res[i].value;
+    }
+  }
+  console.log(max);
+});
 const sessions = {};
 
 const findOrCreateSession = (fbid) => {
@@ -130,26 +137,66 @@ const actions = {
     return new Promise(function(resolve, reject){
       console.log(entities);
       var datetime = firstEntityValue(entities, 'datetime');
-      var score = firstEntityValue(entities, 'score');
       var intent = firstEntityValue(entities, 'intent');
-      
-      if(entities.intent[0].value=='sales'){
-          if(datetime){
-          var totalSales;
+      var contact = firstEntityValue(entities, 'contact');
+      console.log(intent);
+      if(intent=="sales "){
+          if(datetime && !contact){
           var fullDate = entities.datetime[0].value;
           var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
           var completeDate = parseInt(year+month+day);
           console.log(completeDate);
-          db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-              context.unitsSold = res[0].total;
+          db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", value: { $sum: "$CollectedAmount"}}}], function(err, res){
+              console.log(res.length);
+              if(res.length>0){
+              context.unitsSold = res[0].value;  
+              }
+              else{
+                context.unitsSold = 0;
+              }
               context.maxDate = '06-12-2016';
               delete context.missingDate;
               delete context.currentIntent;
               delete context.item;
               delete context.unknown;
-              delete context.score;
+              delete context.bestSalesman;
               return resolve(context);
             });
+          }
+          else if(datetime && contact){
+              var fullDate = entities.datetime[0].value;
+              var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
+              var completeDate = parseInt(year+month+day);
+              console.log(completeDate);
+              db.settlement.aggregate([{ $match: {nDay : completeDate, SalesmanName: contact }}, { $group: {_id: "$nDay", value: { $sum: "$CollectedAmount"}}}], function(err, res){
+                  console.log(res.length);
+                  if(res.length>0){
+                  context.unitsSold = res[0].value;
+                  delete context.missingDate;
+                  delete context.currentIntent;
+                  delete context.item;
+                  delete context.unknown;
+                  delete context.bestSalesman;
+                  return resolve(context);  
+                  }
+                  else{
+                      db.settlement.aggregate([{ $group: {_id: "$SalesmanName", value: { $sum: "$CollectedAmount"}}}], function(request, response){
+                          var max=0, i=0, name = null;
+                          for(i=0; i<response.length; i++){
+                                if(response[i].value>max){
+                                  max=response[i].value;
+                                  name=response[i]._id;
+                                }
+                            }
+                            context.bestSalesman = name;
+                            delete context.missingDate;
+                            delete context.currentIntent;
+                            delete context.item;
+                            delete context.unknown;
+                            return resolve(context);
+                          });
+                  }
+                });
           }
           else{
               context.missingDate = true;
@@ -158,46 +205,108 @@ const actions = {
               delete context.maxDate;
               delete context.item;
               delete context.unknown;
-              delete context.score;
               return resolve(context);
           }  
         }
-      else if(entities.intent[0].value=='sales' && datetime){
-          var totalSales;
-          var fullDate = entities.datetime[0].value;
-          var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
-          var completeDate = parseInt(year+month+day);
-          console.log(completeDate);
-          db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", total: { $sum: "$CollectedAmount"}}}], function(err, res){
-              context.unitsSold = res[0].total;
-              context.maxDate = '06-12-2016';
-              delete context.missingDate;
-              delete context.currentIntent;
-              delete context.item;
-              delete context.unknown;
-              delete context.score;
-              return resolve(context);
-            });
+      else if(intent=='salesman'){
+              var salesman = firstEntityValue(entities, 'salesman');
+              var datetime = firstEntityValue(entities, 'datetime');
+              if(salesman=='outperforming'){
+                if(datetime){
+                    var fullDate = entities.datetime[0].value;
+                    var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
+                    var completeDate = parseInt(year+month+day);  
+                    db.settlement.aggregate([{ $match: {nDay : completeDate}}, { $group: {_id: "$SalesmanName", value: { $sum: "$CollectedAmount"}}}], function(req, res){
+                        if(res.length>0){
+                          var max=0, i=0, name = null;
+                          for(i=0; i<res.length; i++){
+                            if(res[i].value>max){
+                              max=res[i].value;
+                              name=res[i]._id;
+                            }
+                          }
+                          context.totalSales = max;
+                          context.value = name;
+                          return resolve(context);
+                        }
+                        else{
+                          context.notFound = true;
+                          return resolve(context);
+                        }
+                      });
+                }
+                else{
+                db.settlement.aggregate([{ $group: {_id: "$SalesmanName", value: { $sum: "$CollectedAmount"}}}], function(req, res){
+                    var max=0, i=0, name = null;
+                    for(i=0; i<res.length; i++){
+                      if(res[i].value>max){
+                        max=res[i].value;
+                        name=res[i]._id;
+                      }
+                    }
+                    context.totalSales = max;
+                    context.value = name;
+                    return resolve(context);
+                  });
+                }
+              }
+              if(salesman=='underperforming'){
+                if(datetime){
+                    var fullDate = entities.datetime[0].value;
+                    var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
+                    var completeDate = parseInt(year+month+day);  
+                    db.settlement.aggregate([{ $match: {nDay : completeDate}}, { $group: {_id: "$SalesmanName", value: { $sum: "$CollectedAmount"}}}], function(req, res){
+                        if(res.length>0){
+                          var max=1000000000, i=0, name = null;
+                          for(i=0; i<res.length; i++){
+                            if(res[i].value<max){
+                              max=res[i].value;
+                              name=res[i]._id;
+                            }
+                          }
+                          context.totalSales = max;
+                          context.value = name;
+                          return resolve(context);                          
+                        }
+                        else{
+                          context.notFound = true;
+                          return resolve(context);
+                        }
+                      });
+                }
+                else{
+                db.settlement.aggregate([{ $group: {_id: "$SalesmanName", value: { $sum: "$CollectedAmount"}}}], function(req, res){
+                    var max=10000000000, i=0, name = null;
+                    for(i=0; i<res.length; i++){
+                      if(res[i].value<max){
+                        max=res[i].value;
+                        name=res[i]._id;
+                      }
+                    }
+                    context.totalSales = max;
+                    context.value = name;
+                    return resolve(context);
+                  });
+                }
+              }
+              
       }
-      else if(entities.intent[0].value=='fact'){
+      else if(intent=='fact'){
                 WikiFakt.getRandomFact().then(function(item) {
                 context.item = item;
                 delete context.unitsSold;
                 delete context.maxDate;
                 delete context.missingDate;
                 delete context.unknown;
-                delete context.score;
                 context.currentIntent = 'fact';
                 return resolve(context);
                 });
           }
-      
       else{
           delete context.item;
           delete context.unitsSold;
           delete context.maxDate;
           delete context.missingDate;
-          delete context.score;
           delete context.currentIntent;
           return resolve(context);
       }
@@ -252,7 +361,6 @@ app.get('/webhook', (req, res) => {
 // Message handler
 app.post('/webhook', (req, res) => {
   const data = req.body;
-
   if (data.object === 'page') {
     data.entry.forEach(entry => {
       entry.messaging.forEach(event => {
@@ -260,13 +368,19 @@ app.post('/webhook', (req, res) => {
           // Yay! We got a new message!
           // We retrieve the Facebook user ID of the sender
           const sender = event.sender.id;
-          var urlNew ="https://graph.facebook.com/v2.6/" + sender + "?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=" + FB_PAGE_TOKEN;
-          app.get(urlNew, function(err, res){
-            console.log(res);
-          });
             if(!findSession(sender)){
-                  fbMessage(sender, "Welcome to RealBot!")
-                  .catch(console.error);    
+                  var fburl ="https://graph.facebook.com/v2.6/" + sender + "?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=" + FB_PAGE_TOKEN;
+                  request(fburl, (error, response, body)=> {
+                    if (!error && response.statusCode === 200) {
+                      const fbResponse = JSON.parse(body);
+                      console.log(fbResponse);
+                      fbMessage(sender, "Welcome to RealBot!\n\nsender.first_Name: " + fbResponse.first_name + "\nsender.last_name: " + fbResponse.last_name + "\nsender.gender: " + fbResponse.gender + "\nsender.timezone: " + fbResponse.timezone)
+                  .catch(console.error);
+                    } else {
+                      console.log("Got an error: ", error, ", status code: ", response.statusCode);
+                    }
+                  });
+                    
             }
           // We retrieve the user's current session, or create one if it doesn't exist
           // This is needed for our bot to figure out the conversation history
