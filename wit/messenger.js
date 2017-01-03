@@ -7,10 +7,11 @@ var express = require('express');
 var fetch = require('node-fetch');
 var request = require('request');
 var fs =require('fs');
-
+var username = null;
 var mongojs = require("mongojs");
 var db = mongojs('mongodb://arjunw7:13bcb0062@ds129038.mlab.com:29038/salesbot', ['sales', 'settlement']);
 var WikiFakt = require('wikifakt');
+var say = require('say');
 
 let Wit = null;
 let log = null;
@@ -140,7 +141,8 @@ const actions = {
       var intent = firstEntityValue(entities, 'intent');
       var contact = firstEntityValue(entities, 'contact');
       console.log(intent);
-      if(intent=="sales "){
+      console.log(contact);
+      if(intent=="sales"){
           if(datetime && !contact){
           var fullDate = entities.datetime[0].value;
           var year = fullDate.substr(0,4), month = fullDate.substr(5, 2), day = fullDate.substr(8,2);
@@ -149,17 +151,20 @@ const actions = {
           db.settlement.aggregate([{ $match: {nDay : completeDate }}, { $group: {_id: "$nDay", value: { $sum: "$CollectedAmount"}}}], function(err, res){
               console.log(res.length);
               if(res.length>0){
-              context.unitsSold = res[0].value;  
+              context.revenue = res[0].value;  
               }
               else{
-                context.unitsSold = 0;
+                context.revenue = 0;
               }
               context.maxDate = '06-12-2016';
+              context.username = 'Arjun';
+              delete context.helpReply;
               delete context.missingDate;
               delete context.currentIntent;
               delete context.item;
               delete context.unknown;
               delete context.bestSalesman;
+              delete context.introReply;
               return resolve(context);
             });
           }
@@ -171,12 +176,15 @@ const actions = {
               db.settlement.aggregate([{ $match: {nDay : completeDate, SalesmanName: contact }}, { $group: {_id: "$nDay", value: { $sum: "$CollectedAmount"}}}], function(err, res){
                   console.log(res.length);
                   if(res.length>0){
-                  context.unitsSold = res[0].value;
+                  context.revenue = res[0].value;
+                  context.username = 'Arjun';
                   delete context.missingDate;
                   delete context.currentIntent;
                   delete context.item;
+                  delete context.helpReply;
                   delete context.unknown;
                   delete context.bestSalesman;
+                  delete context.introReply;
                   return resolve(context);  
                   }
                   else{
@@ -193,6 +201,43 @@ const actions = {
                             delete context.currentIntent;
                             delete context.item;
                             delete context.unknown;
+                            delete context.helpReply;
+                            delete context.introReply;
+                            return resolve(context);
+                          });
+                  }
+                });
+          }
+         else if(!datetime && contact){
+              db.settlement.aggregate([{ $match: {SalesmanName : contact}}, { $group: {_id: "$SalesmanName", value: { $sum: "$CollectedAmount"}}}], function(err, res){
+                  console.log(res.length);
+                  if(res.length>0){
+                  context.revenue = res[0].value;
+                  delete context.missingDate;
+                  delete context.currentIntent;
+                  delete context.item;
+                  delete context.unknown;
+                  delete context.bestSalesman;
+                  delete context.introReply;
+              delete context.helpReply;
+                  return resolve(context);  
+                  }
+                  else{
+                      db.settlement.aggregate([{ $group: {_id: "$SalesmanName", value: { $sum: "$CollectedAmount"}}}], function(request, response){
+                          var max=0, i=0, name = null;
+                          for(i=0; i<response.length; i++){
+                                if(response[i].value>max){
+                                  max=response[i].value;
+                                  name=response[i]._id;
+                                }
+                            }
+                            context.bestSalesman = name;
+                            delete context.missingDate;
+                            delete context.currentIntent;
+                            delete context.item;
+                            delete context.unknown;
+                            delete context.introReply;
+                            delete context.helpReply;
                             return resolve(context);
                           });
                   }
@@ -201,10 +246,12 @@ const actions = {
           else{
               context.missingDate = true;
               context.currentIntent = 'sales';
-              delete context.unitsSold;
+              delete context.revenue;
               delete context.maxDate;
               delete context.item;
               delete context.unknown;
+              delete context.introReply;
+              delete context.helpReply;
               return resolve(context);
           }  
         }
@@ -225,12 +272,16 @@ const actions = {
                               name=res[i]._id;
                             }
                           }
-                          context.totalSales = max;
+                          context.revenue = max;
+                          context.outPerforming = true;
                           context.value = name;
+                          context.currentIntent = 'salesman';
+                          delete context.helpReply;
                           return resolve(context);
                         }
                         else{
                           context.notFound = true;
+                          delete context.underPerforming;
                           return resolve(context);
                         }
                       });
@@ -244,8 +295,12 @@ const actions = {
                         name=res[i]._id;
                       }
                     }
-                    context.totalSales = max;
+                    context.revenue = max;
                     context.value = name;
+                    context.outPerforming = true;
+                    delete context.underPerforming; 
+                    delete context.helpReply;
+                    context.currentIntent = 'salesman';
                     return resolve(context);
                   });
                 }
@@ -264,8 +319,11 @@ const actions = {
                               name=res[i]._id;
                             }
                           }
-                          context.totalSales = max;
+                          context.revenue = max;
                           context.value = name;
+                          context.underPerforming = true;
+                          context.currentIntent = 'salesman';
+                          delete context.outPerforming;
                           return resolve(context);                          
                         }
                         else{
@@ -283,46 +341,247 @@ const actions = {
                         name=res[i]._id;
                       }
                     }
-                    context.totalSales = max;
+                    context.revenue = max;
                     context.value = name;
+                    context.underPerforming = true;
+                    context.currentIntent = 'salesman';
+                    delete context.outPerforming;
                     return resolve(context);
                   });
                 }
-              }
-              
+              }     
+      }
+      else if(context.currentIntent=='sales' && datetime){
+            context.revenue = 2512453;
+            context.maxDate = '06-12-2016';
+            context.username = 'Arjun';
+            delete context.helpReply;
+            delete context.introReply;
+            return resolve(context);
+               
+      }
+      else if(context.currentIntent=='salesman' && context.underPerforming && intent=='moreDetail'){
+            context.clientsNum = 89;
+            context.rating = 2.9;
+            return resolve(context);
+      }
+      
+      else if(context.currentIntent=='salesman' && context.outPerforming && intent=='moreDetail'){
+            context.clientsNum = 143;
+            context.rating = 4.5;
+            console.log('yay');
+            return resolve(context);
+      }
+
+      else if(context.currentIntent=='salesman' && context.outPerforming && intent=='extraDetails'){
+            context.second = 'Gaurav';
+            context.third = 'Sachin';
+            context.secondSales = 675632;
+            context.thirdSales = 642972;
+            return resolve(context);
+      }
+      else if(context.currentIntent=='salesman' && context.underPerforming && intent=='extraDetails'){
+            context.second = 'Chetan';
+            context.third = 'Rachana';
+            context.secondSales = 388043;
+            context.thirdSales = 547443;
+            console.log('yay');
+            return resolve(context);
       }
       else if(intent=='fact'){
                 WikiFakt.getRandomFact().then(function(item) {
                 context.item = item;
-                delete context.unitsSold;
+                delete context.revenue;
                 delete context.maxDate;
                 delete context.missingDate;
                 delete context.unknown;
+                delete context.introReply;
                 context.currentIntent = 'fact';
                 return resolve(context);
                 });
           }
+      else if(intent=='introduction'){
+                context.introReply=true;
+                context.username = 'Arjun';
+                delete context.revenue;
+                delete context.maxDate;
+                delete context.missingDate;
+                delete context.unknown;
+                delete context.helpReply;
+                delete context.underPerforming;
+                delete context.outPerforming;
+                return resolve(context);
+      }
+      else if(!intent && contact){
+            context.unknown = true;
+            delete context.revenue;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.unknown;
+            delete context.introReply;
+            delete context.helpReply;
+            delete context.underPerforming;
+            delete context.outPerforming;
+            return resolve(context);
+      }
+
+      else if(intent=='bestBrand'){
+            context.brandName = 'Adidas';
+            context.units = 685;
+            context.revenue = 2586856;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.unknown;
+            delete context.introReply;
+            delete context.helpReply;
+            return resolve(context);
+      }
+      else if(intent=='help'){
+        context.helpReply = true;
+        return resolve(context);
+      }
+      else if(intent=='growthRate'){
+            context.negativeRate = '22.67';
+            delete context.revenue;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.unknown;
+            delete context.introReply;
+            delete context.helpReply;
+            delete context.underPerforming;
+            delete context.outPerforming;
+            return resolve(context);
+      }
+      else if(intent=='bestDepartment'){
+            context.departmentName = 'Cosmetics';
+            context.units = 1015;
+            context.revenue = 935120;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.unknown;
+            delete context.introReply;
+           delete context.helpReply;
+            delete context.underPerforming;
+            delete context.outPerforming;
+            return resolve(context);
+      }
+      else if(intent=='uniqueVisitors'){
+            context.uniqueVisitors = 143;
+            delete context.departmentName;
+            delete context.units;
+            delete context.revenue;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.unknown;
+            delete context.introReply;
+            delete context.helpReply; 
+            delete context.underPerforming;
+            delete context.outPerforming;
+            return resolve(context);
+      }
+      else if(intent=='paymentMode'){
+            context.uniqueVisitors = 143;
+            delete context.departmentName;
+            delete context.units;
+            delete context.revenue;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.unknown;
+            delete context.introReply;
+            delete context.helpReply;
+            delete context.underPerforming;
+            delete context.outPerforming;
+            return resolve(context);
+      }
+      else if(intent=='hniClients'){
+        context.clientNum = 102;
+        contexts.revenue = 201502.99;
+        context.units = 7450;
+        return resolve(context);
+      }
+      else if(intent=='uniqueVisitors'){
+        context.uniqueVisitors = 861;
+        return resolve(context);
+      }
+      else if(intent=='overview'){
+        if(datetime){
+          context.revenue = 968566;
+          context.units = 265;
+          context.datePresent = datetime;
+          return resolve(context);
+        }
+        else{
+          context.revenue = 2658453;
+          context.units = 25651;
+          context.missingDate = true;
+          context.mom  = 1.3;
+          context.currentIntent = 'overview';
+          return resolve(context);
+        }
+      }
+      else if(intent=='overview' && contact){
+        if(datetime){
+          context.revenue = 968566;
+          context.units = 265;
+          context.datePresent = datetime;
+          return resolve(context);
+        }
+        else{
+          context.revenue = 2658453;
+          context.units = 25651;
+          context.missingDate = true;
+          context.mom  = 1.3;
+          context.currentIntent = 'overview';
+          return resolve(context);
+        }
+      }
+      else if(context.currentIntent=='overview' && datetime){
+          context.revenue = 968566;
+          context.units = 265;
+          context.datePresent = datetime;
+          return resolve(context);        
+      }
+      else if(intent=='conclusion'){
+            context.username = 'Arjun';
+            context.conclusionReply = true;
+            delete context.item;
+            delete context.revenue;
+            delete context.maxDate;
+            delete context.missingDate;
+            delete context.currentIntent;
+            delete context.underPerforming;
+            delete context.outPerforming;
+            delete context.introReply;
+            delete context.helpReply;
+            delete context.unknown;
+            return resolve(context);
+      }
       else{
+          context.unknown = true;
           delete context.item;
-          delete context.unitsSold;
+          delete context.revenue;
           delete context.maxDate;
           delete context.missingDate;
           delete context.currentIntent;
+          delete context.introReply;
           return resolve(context);
       }
     })
   },
   emptyContext({context}){
-              delete context.score;
               delete context.item;
-              delete context.unitsSold;
+              delete context.revenue;
               delete context.maxDate;
               delete context.missingDate;
-              delete context.currentIntent;  
-                
+              delete context.currentIntent;
+              delete context.underPerforming;
+              delete context.outPerforming;
+              delete context.introReply;
+              delete context.helpReply;    
   }
 };
 
+var sender = null;
 // Setting up our bot
 const wit = new Wit({
   accessToken: WIT_TOKEN,
@@ -367,21 +626,22 @@ app.post('/webhook', (req, res) => {
         if (event.message && !event.message.is_echo) {
           // Yay! We got a new message!
           // We retrieve the Facebook user ID of the sender
-          const sender = event.sender.id;
-            if(!findSession(sender)){
-                  var fburl ="https://graph.facebook.com/v2.6/" + sender + "?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=" + FB_PAGE_TOKEN;
-                  request(fburl, (error, response, body)=> {
-                    if (!error && response.statusCode === 200) {
-                      const fbResponse = JSON.parse(body);
-                      console.log(fbResponse);
-                      fbMessage(sender, "Welcome to RealBot!\n\nsender.first_Name: " + fbResponse.first_name + "\nsender.last_name: " + fbResponse.last_name + "\nsender.gender: " + fbResponse.gender + "\nsender.timezone: " + fbResponse.timezone)
-                  .catch(console.error);
-                    } else {
-                      console.log("Got an error: ", error, ", status code: ", response.statusCode);
-                    }
-                  });
+          sender = event.sender.id;
+            // if(!findSession(sender)){
+            //       var fburl ="https://graph.facebook.com/v2.6/" + sender + "?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token=" + FB_PAGE_TOKEN;
+            //       request(fburl, (error, response, body)=> {
+            //         if (!error && response.statusCode === 200) {
+            //           const fbResponse = JSON.parse(body);
+            //           console.log(fbResponse);
+            //           username = fbResponse.first_name;
+            //           fbMessage(sender, "Welcome to RealBot!\n\nsender.first_Name: " + fbResponse.first_name + "\nsender.last_name: " + fbResponse.last_name + "\nsender.gender: " + fbResponse.gender + "\nsender.timezone: " + fbResponse.timezone)
+            //       .catch(console.error);
+            //         } else {
+            //           console.log("Got an error: ", error, ", status code: ", response.statusCode);
+            //         }
+            //       });
                     
-            }
+            // }
           // We retrieve the user's current session, or create one if it doesn't exist
           // This is needed for our bot to figure out the conversation history
           const sessionId = findOrCreateSession(sender);
@@ -407,15 +667,6 @@ app.post('/webhook', (req, res) => {
               // Our bot did everything it has to do.
               // Now it's waiting for further messages to proceed.
               console.log('Waiting for next user messages');
-
-              // Based on the session state, you might want to reset the session.
-              // This depends heavily on the business logic of your bot.
-              // Example:
-              // if (context['done']) {
-              //   delete sessions[sessionId];
-              // }
-
-              // Updating the user's current session state
               sessions[sessionId].context = context;
             })
             .catch((err) => {
@@ -424,7 +675,10 @@ app.post('/webhook', (req, res) => {
           }
         } else {
           console.log('received event', JSON.stringify(event));
-        }
+          // if(event){
+          //     say.speak(event.message.text);
+          // }
+          }
       });
     });
   }
@@ -456,3 +710,4 @@ function verifyRequestSignature(req, res, buf) {
 
 app.listen(PORT);
 console.log('Listening on :' + PORT + '...');
+
