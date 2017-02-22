@@ -137,7 +137,17 @@ const actions = {
   merge({sessionId, text, context, entities}) {
     return new Promise(function(resolve, reject){
       console.log(entities);
+
+      var intent = firstEntityValue(entities, 'intent');
       var roomID = firstEntityValue(entities, 'roomID');
+      if(intent=='introduction'){
+        context.introReply = true;
+        return resolve(context);
+      }
+      if(intent=='help'){
+        context.helpReply = true;
+        return resolve(context);
+      }
       if(roomID=='berners'){
             context.directions = 'Go straight and turn left. Second room in the row is Berners meeting room.';
             return resolve(context);
