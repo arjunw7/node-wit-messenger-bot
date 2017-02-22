@@ -144,10 +144,6 @@ const actions = {
         context.introReply = true;
         return resolve(context);
       }
-      if(intent=='help'){
-        context.helpReply = true;
-        return resolve(context);
-      }
       if(roomID=='berners'){
             context.directions = 'Go straight and turn left. Second room in the row is Berners meeting room.';
             return resolve(context);
