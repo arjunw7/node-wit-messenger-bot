@@ -209,7 +209,7 @@ const actions = {
       }
       else       
       if(roomID=='borg'){
-            context.directions = 'Borg meeting room is next to gaming room in the 7th floor cafeteria..';
+            context.directions = 'Borg meeting room is next to gaming room in the cafeteria.';
             return resolve(context);
       }
       else{
