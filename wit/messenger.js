@@ -142,8 +142,78 @@ const actions = {
             context.directions = 'Go straight and turn left. Second room in the row is Berners meeting room.';
             return resolve(context);
       }
+      else       
+      if(roomID=='MVP'){
+            context.directions = 'Go straight and turn left. First room in the row is MVP meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='pivot'){
+            context.directions = 'Go straight and turn left. Third room in the row is Pivot meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='epic'){
+            context.directions = 'First room on the right side is Epic meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='roadmap'){
+            context.directions = 'Second room on the right side is Roadmap meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='sprint'){
+            context.directions = 'Third room on the right side is Sprint meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='gosling'){
+            context.directions = 'Go straight and turn right. First room in the row is Gosling meeting room.';
+            return resolve(context);
+      }
+      else    
+      if(roomID=='kanban'){
+            context.directions = 'Go straight and turn right. Second room in the row is Kanban meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='babbage'){
+            context.directions = 'Go straight and turn right. Third room in the row is Babbage meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='thompson'){
+            context.directions = 'Turn left, walk till the end and then turn right. First room in the row is Thompson meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='turing'){
+            context.directions = 'Turn left, walk till the end and then turn right. Second room in the row is Thompson meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='ritchi'){
+            context.directions = 'Turn left, walk till the end and then turn left. First room in the row is Ritchi meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='hopper'){
+            context.directions = 'Turn left, walk till the end and then turn left. Second room in the row is Hopper meeting room.';
+            return resolve(context);
+      }
+     else       
+      if(roomID=='torvaldi'){
+            context.directions = 'Turn left, walk till the end and then turn left. Third room in the row is Hopper meeting room.';
+            return resolve(context);
+      }
+      else       
+      if(roomID=='borg'){
+            context.directions = 'Borg meeting room is next to gaming room in the 7th floor cafeteria..';
+            return resolve(context);
+      }
       else{
-        context.directions = 'Nor berners';
+        context.directions = "I don't think there is such room in the floor. Kindly recheck.";
             return resolve(context);
       }
     })
