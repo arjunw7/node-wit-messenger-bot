@@ -213,7 +213,7 @@ const actions = {
             return resolve(context);
       }
       else{
-        context.directions = "I don't think there is such room in the floor. Kindly recheck.";
+        context.directions = "I don't think there is such room on the premises. Kindly recheck.";
             return resolve(context);
       }
     })
