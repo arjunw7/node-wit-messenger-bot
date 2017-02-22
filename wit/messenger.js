@@ -853,6 +853,8 @@ const actions = {
       console.log(entities);
       var roomID = firstEntityValue(entities, 'roomID');
       console.log(roomID);
+      context.directions = "Go straight, second room on the left is Berners";
+      return resolve(context);
   }
 };
 
